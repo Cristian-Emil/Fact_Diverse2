@@ -138,7 +138,7 @@ def insertTransaction(t, p):
             t.append([day, value, type, description])
             return t[len(t) - 1]
         else:
-            print("Invalid command.", len(t))
+            print("Invalid command.")
             return False
     else:
         print("Invalid command.")
@@ -198,9 +198,9 @@ def testFindTrans():
     t = []
     initTrans(t)
 
-    #assert findTransaction(t, ["13", "in", "found"]) == 7
-    assert findTransaction(t, ["23", "in", "found"]) == False
-    assert findTransaction(t, ["1g3", "in", "found"]) == False
+    assert findTransaction(t, ["13", "in", "found", "with", "3242"]) == 7
+    assert findTransaction(t, ["23", "in", "found", "with", "32"]) == -1
+    assert findTransaction(t, ["1g3", "in", "found", "234"]) == False
 
 def findTransaction(t, p):
     if len(p) == 5:
@@ -208,11 +208,12 @@ def findTransaction(t, p):
         type = validType(p[1])
         description = p[2]
 
-        if day != False and type != False:
+        pos = -1
+
+        if type != False:
             for i in range(len(t)):
                 if t[i][0] == day and t[i][2] == type and t[i][3] == description:
-                    print(i, "\n")
-                    return i
+                    pos = i
         else:
             print("Invalid command.")
             return False
@@ -220,7 +221,7 @@ def findTransaction(t, p):
         print("Invalid command.")
         return False
 
-    return False
+    return pos
 
 def replaceTransaction(t, p):
     pos = findTransaction(t, p)
@@ -239,7 +240,7 @@ def initTrans(t):
     insertTransaction(t, ["11", "200", "in", "salary"])
     insertTransaction(t, ["13", "1000", "in", "found"])
     insertTransaction(t, ["12", "243", "out", "leftover"])
-    #insertTransaction(t, ["12", "10000", "in", "gambling"])
+    insertTransaction(t, ["12", "10000", "in", "gambling"])
 
 
 def runTests():
