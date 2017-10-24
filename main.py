@@ -6,12 +6,13 @@ def showCommands():
     cmds += "- add <value><type><description(1 word)>\n"
     cmds += "- remove <day> / <start day> to <end day> / <type>\n"
     cmds += "- replace <day><type><description> with <value>\n"
+    cmds += "- list <>/<type>/< < / = / > > / banalce <day>"
     cmds += "\n"
 
     print(cmds)
 
 def initializeCmdList():
-    cmds = {"add":addTransaction, "insert":insertTransaction, "remove":removeTransaction, "replace":replaceTransaction}
+    cmds = {"add":addTransaction, "insert":insertTransaction, "remove":removeTransaction, "replace":replaceTransaction, "list":listTransactions}
 
     return cmds
 
@@ -70,7 +71,7 @@ def testAddTrans():
     initTrans(t)
 
     last = addTransaction(t, ["233", "out", "food"])
-    assert last[0] == 22
+    assert last[0] == int(time.strftime("%d"))
     assert last[1] == 233
     assert last[2] == "out"
     assert last[3] == "food"
@@ -97,10 +98,8 @@ def addTransaction(t, p):
             t.append([day, value, type, description])
             return t[len(t) - 1]
         else:
-            print("Invalid command.")
             return False
     else:
-        print("Invalid command.")
         return False
 
 def testInsertTrans():
@@ -138,10 +137,8 @@ def insertTransaction(t, p):
             t.append([day, value, type, description])
             return t[len(t) - 1]
         else:
-            print("Invalid command.")
             return False
     else:
-        print("Invalid command.")
         return False
 
 def posToRemove(t, p):
@@ -215,20 +212,95 @@ def findTransaction(t, p):
                 if t[i][0] == day and t[i][2] == type and t[i][3] == description:
                     pos = i
         else:
-            print("Invalid command.")
             return False
     else:
-        print("Invalid command.")
         return False
 
     return pos
 
 def replaceTransaction(t, p):
     pos = findTransaction(t, p)
-    new_value = giveInt(p[4])
 
     if pos != False:
-        t[pos][1] =  new_value
+        if pos != -1:
+            new_value = giveInt(p[4])
+            t[pos][1] =  new_value
+        else:
+            print("Transaction not found.")
+    else:
+        return False
+
+def listType(p):
+    '''
+        Determinates the type of listing that the user wants to be performed.
+        I: p(parameters of the transaction)
+        O: the number that represents what operation should be performed
+    '''
+    if len(p) == 0:
+        return 1
+    elif len(p) == 1:
+        if validType(p[0]):
+            return 2
+    elif len(p) == 2:
+        if p[0] in ["<", "=", ">"]:
+            p[1] = giveInt(p[1])
+            if p[1] != False:
+                return 3
+        elif p[0] == "balance":
+            p[1] = giveInt(p[1])
+            if p[1] != False:
+                return 4
+
+    return False
+
+def balance(t, d):
+    '''
+        Computes the balance of the account untill a given day.
+        I: t(transaction list), d(day - no. 1-31)
+        O: balance
+    '''
+    b = 0
+    for i in t:
+        if i[0] <= d:
+            if i[2] == "in":
+                b += i[1]
+            else:
+                b -= i[1]
+    return b
+
+def listByType(t, p, ltp):
+    '''
+        Prints the transactions based on the type needed.
+        I: t(transaction list), p(parameters given by the), ltp(no. 1-4, type of listing)
+    '''
+    if ltp == 1:
+        for i in t:
+            print(i[0], i[1], i[2], i[3])
+    elif ltp == 2:
+        for i in t:
+            if i[2] == p[0]:
+                print(i[0], i[1], i[2], i[3])
+    elif ltp == 3:
+        for i in t:
+            if p[0] == "<":
+                if i[1] < p[1]:
+                    print(i[0], i[1], i[2], i[3])
+            if p[0] == "=":
+                if i[1] == p[1]:
+                    print(i[0], i[1], i[2], i[3])
+            if p[0] == ">":
+                if i[1] > p[1]:
+                    print(i[0], i[1], i[2], i[3])
+    else:
+        print(balance(t, p[1]))
+
+def listTransactions(t, p):
+    list_type = listType(p)
+
+    if list_type != False:
+        listByType(t, p, list_type)
+    else:
+        return False
 
 def initTrans(t):
     addTransaction(t, ["2342", "in", "salary"])
@@ -260,18 +332,17 @@ def run():
 
     while True:
         showCommands()
-
+    
         cmd = readCommand()
-
+    
         command = cmd[0]
         params = cmd[1]
-
+    
         if command == "exit":
             return
         elif command in commands:
-            commands[command](transactions, params)
-            for t in transactions:
-                print(t)
+            if commands[command](transactions, params) == False:
+                print("Invalid params.")
         else:
             print("Invalid command!")
         print('\n')
